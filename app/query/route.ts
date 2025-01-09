@@ -6,7 +6,7 @@ async function getClient() {
   return client;
 }
 
-async function listInvoices(client) {
+async function listInvoices(client: any) {
   const data = await client.sql`
     SELECT invoices.amount, customers.name
     FROM invoices
@@ -23,7 +23,8 @@ export async function GET() {
     return NextResponse.json(invoices); // Respond with the data
   } catch (error) {
     console.error('Error fetching invoices:', error); // Log the error
-    return NextResponse.json({ error: error.message }, { status: 500 }); // Return error response
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ error: errorMessage }, { status: 500 }); // Return error response
   } finally {
     client.release(); // Ensure the database connection is released
   }
