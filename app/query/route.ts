@@ -1,26 +1,30 @@
-// import { db } from "@vercel/postgres";
+import { db } from '@vercel/postgres';
+import { NextResponse } from 'next/server'; // Correct import for Next.js responses
 
-// const client = await db.connect();
+async function getClient() {
+  const client = await db.connect();
+  return client;
+}
 
-// async function listInvoices() {
-// 	const data = await client.sql`
-//     SELECT invoices.amount, customers.name
-//     FROM invoices
-//     JOIN customers ON invoices.customer_id = customers.id
-//     WHERE invoices.amount = 666;
-//   `;
-
-// 	return data.rows;
-// }
+async function listInvoices(client) {
+  const data = await client.sql`
+    SELECT invoices.amount, customers.name
+    FROM invoices
+    JOIN customers ON invoices.customer_id = customers.id
+    WHERE invoices.amount = 666;
+  `;
+  return data.rows;
+}
 
 export async function GET() {
-  return Response.json({
-    message:
-      'Uncomment this file and remove this line. You can delete this file when you are finished.',
-  });
-  // try {
-  // 	return Response.json(await listInvoices());
-  // } catch (error) {
-  // 	return Response.json({ error }, { status: 500 });
-  // }
+  const client = await getClient(); // Initialize the database connection
+  try {
+    const invoices = await listInvoices(client); // Fetch data
+    return NextResponse.json(invoices); // Respond with the data
+  } catch (error) {
+    console.error('Error fetching invoices:', error); // Log the error
+    return NextResponse.json({ error: error.message }, { status: 500 }); // Return error response
+  } finally {
+    client.release(); // Ensure the database connection is released
+  }
 }
